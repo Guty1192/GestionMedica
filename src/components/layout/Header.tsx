@@ -43,6 +43,7 @@ export const Header: React.FC = () => {
     currentUser,
     activeUser,
     switchUser,
+    requestSwitchUser,
     lockScreen,
     logout,
     openPinModal,
@@ -388,9 +389,8 @@ export const Header: React.FC = () => {
                   <button
                     onClick={() => {
                       const target = currentUser === 'doctor' ? 'admin' : 'doctor';
-                      switchUser(target);
-                      setUserRole(target === 'doctor' ? 'specialist' : 'admin');
                       setIsUserMenuOpen(false);
+                      requestSwitchUser(target);
                     }}
                     className="w-full px-3 py-2 text-left rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-700 flex items-center justify-between transition-colors cursor-pointer group"
                   >

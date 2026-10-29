@@ -6,6 +6,7 @@ import { DoctorAuthProvider } from '@/lib/auth/doctorAuthContext';
 import { ModalCentroSeguridad } from '@/components/security/ModalCentroSeguridad';
 import { ModalDoctorPin } from '@/components/auth/ModalDoctorPin';
 import { ModalLogin } from '@/components/auth/ModalLogin';
+import { ModalAdminPinPrompt } from '@/components/auth/ModalAdminPinPrompt';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 
@@ -50,6 +51,9 @@ export default function RootLayout({
 
               {/* Portal de Login para Doctor y Administrador */}
               <ModalLogin />
+
+              {/* Modal de Validación de PIN para Pasar a Administrador */}
+              <ModalAdminPinPrompt />
             </ClinicProvider>
           </SecurityProvider>
         </DoctorAuthProvider>

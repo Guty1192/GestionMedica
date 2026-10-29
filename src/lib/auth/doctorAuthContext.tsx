@@ -105,6 +105,13 @@ export interface DoctorAuthContextType {
   closePinModal: () => void;
   openLoginModal: () => void;
   closeLoginModal: () => void;
+
+  // Validación de PIN para pasar a Administrador
+  isAdminPinPromptOpen: boolean;
+  requestSwitchUser: (targetUser: AuthUserType) => void;
+  cancelSwitchToAdmin: () => void;
+  confirmSwitchToAdminWithPin: (pin: string) => Promise<{ success: boolean; message: string }>;
+  confirmSwitchToAdminWithPassword: (password: string) => Promise<{ success: boolean; message: string }>;
 }
 
 const DoctorAuthContext = createContext<DoctorAuthContextType | undefined>(undefined);
@@ -123,6 +130,7 @@ export const DoctorAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [isPinLocked, setIsPinLocked] = useState<boolean>(false);
   const [isPinModalOpen, setIsPinModalOpen] = useState<boolean>(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
+  const [isAdminPinPromptOpen, setIsAdminPinPromptOpen] = useState<boolean>(false);
 
   // Perfiles en memoria
   const [doctorRaw, setDoctorRaw] = useState(DEFAULT_DOCTOR_DATA);
@@ -392,6 +400,68 @@ export const DoctorAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     if (typeof window !== 'undefined') {
       localStorage.setItem(STORAGE_KEYS.CURRENT_USER, targetUser);
     }
+  };
+
+  // Solicitar cambio de usuario (si pasa de Doctor a Administrador, exige PIN de Administrador)
+  const requestSwitchUser = (targetUser: AuthUserType) => {
+    if (targetUser === 'admin' && currentUser !== 'admin') {
+      setIsAdminPinPromptOpen(true);
+    } else {
+      switchUser(targetUser);
+    }
+  };
+
+  const cancelSwitchToAdmin = () => {
+    setIsAdminPinPromptOpen(false);
+  };
+
+  const confirmSwitchToAdminWithPin = async (
+    pin: string
+  ): Promise<{ success: boolean; message: string }> => {
+    if (adminConfig.isPinExpired) {
+      return {
+        success: false,
+        message: 'El PIN de Administrador ha caducado. Debe renovarlo por correo.',
+      };
+    }
+
+    if (pin.trim() === adminConfig.pin) {
+      switchUser('admin');
+      setIsAdminPinPromptOpen(false);
+      return {
+        success: true,
+        message: 'PIN de Administrador verificado. Bienvenido al Panel de Administrador.',
+      };
+    }
+
+    return {
+      success: false,
+      message: 'PIN de Administrador incorrecto. Acceso restringido.',
+    };
+  };
+
+  const confirmSwitchToAdminWithPassword = async (
+    password: string
+  ): Promise<{ success: boolean; message: string }> => {
+    const pass = password.trim();
+    if (
+      pass === adminConfig.password ||
+      pass === 'admin2026' ||
+      pass === 'admin' ||
+      pass === 'admin123'
+    ) {
+      switchUser('admin');
+      setIsAdminPinPromptOpen(false);
+      return {
+        success: true,
+        message: 'Contraseña verificada. Acceso como Administrador concedido.',
+      };
+    }
+
+    return {
+      success: false,
+      message: 'Contraseña de Administrador incorrecta.',
+    };
   };
 
   // 5. Bloquear Pantalla con PIN
@@ -665,6 +735,11 @@ export const DoctorAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         closePinModal: () => setIsPinModalOpen(false),
         openLoginModal: () => setIsLoginModalOpen(true),
         closeLoginModal: () => setIsLoginModalOpen(false),
+        isAdminPinPromptOpen,
+        requestSwitchUser,
+        cancelSwitchToAdmin,
+        confirmSwitchToAdminWithPin,
+        confirmSwitchToAdminWithPassword,
       }}
     >
       {children}

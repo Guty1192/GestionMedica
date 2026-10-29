@@ -12,6 +12,10 @@ import {
   Shield,
   Stethoscope,
   ClipboardList,
+  Lock,
+  KeyRound,
+  LogOut,
+  Calendar,
 } from 'lucide-react';
 
 const navItems = [
@@ -48,8 +52,12 @@ export const Sidebar: React.FC = () => {
 
   const {
     currentUser,
-    switchUser,
     activeUser,
+    requestSwitchUser,
+    lockScreen,
+    logout,
+    openPinModal,
+    daysRemainingPin,
   } = useDoctorAuth();
 
   return (
@@ -141,66 +149,132 @@ export const Sidebar: React.FC = () => {
         </nav>
       </div>
 
-      {/* Bottom Controls & System Status */}
-      <div className="p-4 border-t-2 border-slate-100 bg-slate-50/60 space-y-3">
-        {/* Role Toggle */}
+      {/* Bottom Controls: Cuenta Activa, Seguridad & Sincronización */}
+      <div className="p-3 border-t-2 border-slate-100 bg-slate-50/70 space-y-2.5">
+        {/* Toggle Médico vs Administrador */}
         <div>
-          <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500 mb-1.5">
+          <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500 mb-1.5 px-0.5">
             <span className="flex items-center gap-1.5">
               <UserCheck className="w-3.5 h-3.5 text-slate-400" />
-              Cuenta Activa
+              Cuenta del Sistema
             </span>
-            <span className="text-[10px] font-black text-slate-800 uppercase tracking-wider">
-              {currentUser === 'doctor' ? 'Dr. Henry Castañeda' : 'Administrador'}
+            <span className="text-[10px] font-black text-slate-700 uppercase tracking-wider">
+              {currentUser === 'doctor' ? 'Médico' : 'Admin'}
             </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+          <div className="grid grid-cols-2 gap-1 bg-slate-200/70 p-1 rounded-xl border border-slate-200">
             <button
               onClick={() => {
-                switchUser('doctor');
+                requestSwitchUser('doctor');
                 setUserRole('specialist');
               }}
               className={`flex items-center justify-center gap-1.5 py-1.5 text-[11px] font-semibold rounded-lg transition-all cursor-pointer ${
                 currentUser === 'doctor'
                   ? 'bg-[#004299] text-white shadow-xs font-bold border border-[#004299]'
-                  : 'text-slate-600 hover:text-slate-900'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
               }`}
             >
               <Stethoscope className="w-3 h-3" />
-              Médico
+              <span>Médico</span>
             </button>
             <button
               onClick={() => {
-                switchUser('admin');
-                setUserRole('admin');
+                requestSwitchUser('admin');
               }}
               className={`flex items-center justify-center gap-1.5 py-1.5 text-[11px] font-semibold rounded-lg transition-all cursor-pointer ${
                 currentUser === 'admin'
                   ? 'bg-[#004299] text-white shadow-xs font-bold border border-[#004299]'
-                  : 'text-slate-600 hover:text-slate-900'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
               }`}
             >
               <Shield className="w-3 h-3" />
-              Admin
+              <span>Administrador</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Ficha Completa del Usuario Activo */}
+        <div
+          className={`p-3 rounded-2xl border transition-all ${
+            currentUser === 'doctor'
+              ? 'bg-gradient-to-br from-white via-sky-50/40 to-blue-50/60 border-sky-200 shadow-2xs'
+              : 'bg-gradient-to-br from-white via-purple-50/40 to-indigo-50/60 border-purple-200 shadow-2xs'
+          }`}
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-white shadow-xs border border-slate-200 flex items-center justify-center text-lg flex-shrink-0">
+              {activeUser.avatarIcon}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-extrabold text-slate-900 truncate">
+                {activeUser.name}
+              </p>
+              <p className="text-[10px] text-slate-500 font-medium truncate">
+                {activeUser.email}
+              </p>
+              <span
+                className={`inline-block mt-0.5 text-[9px] font-black uppercase tracking-wider px-2 py-0.2 rounded-md ${
+                  currentUser === 'doctor'
+                    ? 'bg-sky-100 text-sky-800'
+                    : 'bg-purple-100 text-purple-800'
+                }`}
+              >
+                {currentUser === 'doctor' ? 'MÉDICO ESPECIALISTA' : 'ADMINISTRADOR'}
+              </span>
+            </div>
+          </div>
+
+          {/* Estado de PIN rotativo de 30 días */}
+          <div className="mt-2 pt-2 border-t border-slate-200/60 flex items-center justify-between text-[10px] text-slate-600">
+            <span className="flex items-center gap-1 font-medium">
+              <Calendar className="w-3 h-3 text-emerald-600" />
+              PIN rotativo:
+            </span>
+            <strong className="text-emerald-700 font-bold">{daysRemainingPin}d restantes</strong>
+          </div>
+
+          {/* Acciones Rápidas: Bloquear PIN, Renovar, Salir */}
+          <div className="mt-2 pt-2 border-t border-slate-200/60 grid grid-cols-3 gap-1 text-[10px]">
+            <button
+              onClick={lockScreen}
+              className="flex items-center justify-center gap-1 py-1 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold transition-all cursor-pointer"
+              title="Bloquear pantalla con PIN"
+            >
+              <Lock className="w-3 h-3 text-slate-600" />
+              <span>Bloquear</span>
+            </button>
+            <button
+              onClick={openPinModal}
+              className="flex items-center justify-center gap-1 py-1 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold transition-all cursor-pointer"
+              title="Renovar PIN por correo"
+            >
+              <KeyRound className="w-3 h-3 text-[#004299]" />
+              <span>PIN</span>
+            </button>
+            <button
+              onClick={logout}
+              className="flex items-center justify-center gap-1 py-1 rounded-lg bg-white hover:bg-red-50 border border-slate-200 text-red-600 font-bold transition-all cursor-pointer"
+              title="Cerrar sesión"
+            >
+              <LogOut className="w-3 h-3 text-red-500" />
+              <span>Salir</span>
             </button>
           </div>
         </div>
 
         {/* Sync Status Badge */}
-        <div className="p-2.5 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center gap-2.5 text-[11px] text-slate-700">
+        <div className="p-2 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center gap-2 text-[10px] text-slate-600">
           <span
-            className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
+            className={`w-2 h-2 rounded-full flex-shrink-0 ${
               isLiveSupabase ? 'bg-sky-500 animate-ping' : 'bg-emerald-500'
             }`}
           ></span>
-          <div>
-            <p className="font-bold text-slate-900 leading-tight">
-              {isLiveSupabase ? 'Supabase Conectado' : 'Sincronización Local'}
-            </p>
-            <p className="text-[10px] text-slate-500">
-              {isLiveSupabase ? 'PostgreSQL en vivo' : 'Persistencia tiempo real'}
-            </p>
+          <div className="min-w-0 flex-1 flex items-center justify-between">
+            <span className="font-bold text-slate-800 truncate">
+              {isLiveSupabase ? 'Supabase Conectado' : 'Sincronizado'}
+            </span>
+            <span className="text-[9px] text-slate-400 font-mono">24/7</span>
           </div>
         </div>
       </div>
