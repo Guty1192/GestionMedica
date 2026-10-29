@@ -10,7 +10,6 @@ import {
   UserCheck,
   Shield,
   Stethoscope,
-  RefreshCw,
   ClipboardList,
 } from 'lucide-react';
 
@@ -44,7 +43,6 @@ export const Sidebar: React.FC = () => {
     userRole,
     setUserRole,
     isLiveSupabase,
-    resetToInitialData,
   } = useClinicStore();
 
   return (
@@ -177,29 +175,20 @@ export const Sidebar: React.FC = () => {
         </div>
 
         {/* Sync Status Badge */}
-        <div className="p-2.5 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center justify-between text-[11px] text-slate-700">
-          <div className="flex items-center gap-2">
-            <span
-              className={`w-2 h-2 rounded-full ${
-                isLiveSupabase ? 'bg-sky-500 animate-ping' : 'bg-emerald-500'
-              }`}
-            ></span>
-            <div>
-              <p className="font-bold text-slate-900 leading-tight">
-                {isLiveSupabase ? 'Supabase Conectado' : 'Sincronización Local'}
-              </p>
-              <p className="text-[10px] text-slate-500">
-                {isLiveSupabase ? 'PostgreSQL en vivo' : 'Persistencia tiempo real'}
-              </p>
-            </div>
+        <div className="p-2.5 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center gap-2.5 text-[11px] text-slate-700">
+          <span
+            className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
+              isLiveSupabase ? 'bg-sky-500 animate-ping' : 'bg-emerald-500'
+            }`}
+          ></span>
+          <div>
+            <p className="font-bold text-slate-900 leading-tight">
+              {isLiveSupabase ? 'Supabase Conectado' : 'Sincronización Local'}
+            </p>
+            <p className="text-[10px] text-slate-500">
+              {isLiveSupabase ? 'PostgreSQL en vivo' : 'Persistencia tiempo real'}
+            </p>
           </div>
-          <button
-            onClick={resetToInitialData}
-            title="Reiniciar datos iniciales"
-            className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-          </button>
         </div>
       </div>
     </aside>
