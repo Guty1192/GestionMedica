@@ -15,9 +15,14 @@ import {
   User,
   ExternalLink,
   ChevronRight,
+  ChevronDown,
   Sparkles,
   ShieldCheck,
   Lock,
+  ArrowLeftRight,
+  LogOut,
+  KeyRound,
+  Calendar,
 } from 'lucide-react';
 import { ModalNuevoRegistroHistorial } from '../modals/ModalNuevoRegistroHistorial';
 import { ModalBuscadorPacientes } from '../modals/ModalBuscadorPacientes';
@@ -30,16 +35,28 @@ export const Header: React.FC = () => {
     activePatientId,
     notification,
     dismissNotification,
+    setUserRole,
   } = useClinicStore();
 
   const { openSecurityModal, privacyMode } = useSecurity();
-  const { lockScreen, daysRemainingPin, isPinExpired } = useDoctorAuth();
+  const {
+    currentUser,
+    activeUser,
+    switchUser,
+    lockScreen,
+    logout,
+    openPinModal,
+    daysRemainingPin,
+    isPinExpired,
+  } = useDoctorAuth();
 
   const [openHistorialModal, setOpenHistorialModal] = useState(false);
   const [openSearchModal, setOpenSearchModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Global Ctrl + K shortcut to open search modal
@@ -59,6 +76,9 @@ export const Header: React.FC = () => {
     const handleClickOutside = (e: MouseEvent) => {
       if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
         setIsDropdownOpen(false);
+      }
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setIsUserMenuOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -294,8 +314,139 @@ export const Header: React.FC = () => {
           )}
         </div>
 
-        {/* Right Action Bar: Ciberseguridad, Bloqueo PIN & Registrar Paciente */}
+        {/* Right Action Bar: Perfil de Usuario, Bloqueo PIN, Ciberseguridad & Registrar */}
         <div className="flex items-center gap-2">
+          {/* User Account Capsule & Dropdown Menu */}
+          <div ref={userMenuRef} className="relative">
+            <button
+              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+              className={`flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-xl border transition-all cursor-pointer shadow-xs ${
+                currentUser === 'doctor'
+                  ? 'bg-sky-50 hover:bg-sky-100 border-sky-200 text-sky-950'
+                  : 'bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-950'
+              }`}
+              title="Cuenta activa - Clic para ver opciones de usuario"
+            >
+              <span className="text-base select-none">{activeUser.avatarIcon}</span>
+              <div className="text-left hidden md:block">
+                <p className="text-[11px] font-extrabold leading-tight text-slate-900 truncate max-w-[130px]">
+                  {currentUser === 'doctor' ? 'Dr. Henry Castañeda' : 'Administrador'}
+                </p>
+                <p className="text-[9px] font-semibold text-slate-500 leading-tight">
+                  {currentUser === 'doctor' ? 'Especialista' : 'Admin'}
+                </p>
+              </div>
+              <ChevronDown className={`w-3.5 h-3.5 text-slate-500 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* Menu Dropdown de Usuario */}
+            {isUserMenuOpen && (
+              <div className="absolute top-full right-0 mt-2 w-72 bg-white rounded-2xl shadow-2xl border-2 border-slate-200 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+                {/* Header del Perfil Activo */}
+                <div
+                  className={`p-4 border-b border-slate-100 ${
+                    currentUser === 'doctor'
+                      ? 'bg-gradient-to-br from-sky-50 to-blue-50/50'
+                      : 'bg-gradient-to-br from-purple-50 to-indigo-50/50'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-white shadow-xs border border-slate-200 flex items-center justify-center text-xl flex-shrink-0">
+                      {activeUser.avatarIcon}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-black text-slate-900 truncate">
+                        {activeUser.name}
+                      </p>
+                      <p className="text-[10px] font-semibold text-slate-500 truncate">
+                        {activeUser.email}
+                      </p>
+                      <span
+                        className={`inline-block mt-1 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                          currentUser === 'doctor'
+                            ? 'bg-sky-100 text-sky-800'
+                            : 'bg-purple-100 text-purple-800'
+                        }`}
+                      >
+                        {activeUser.roleTitle}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 pt-2.5 border-t border-slate-200/60 flex items-center justify-between text-[11px] text-slate-600">
+                    <span className="flex items-center gap-1 font-medium">
+                      <Calendar className="w-3.5 h-3.5 text-emerald-600" />
+                      PIN rotativo (30 días):
+                    </span>
+                    <strong className="text-emerald-700 font-bold">{daysRemainingPin}d restantes</strong>
+                  </div>
+                </div>
+
+                {/* Acciones de Cuenta */}
+                <div className="p-2 space-y-1">
+                  {/* Alternar Cuenta */}
+                  <button
+                    onClick={() => {
+                      const target = currentUser === 'doctor' ? 'admin' : 'doctor';
+                      switchUser(target);
+                      setUserRole(target === 'doctor' ? 'specialist' : 'admin');
+                      setIsUserMenuOpen(false);
+                    }}
+                    className="w-full px-3 py-2 text-left rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-700 flex items-center justify-between transition-colors cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-2">
+                      <ArrowLeftRight className="w-4 h-4 text-sky-600 group-hover:scale-110 transition-transform" />
+                      <span>
+                        Cambiar a <strong>{currentUser === 'doctor' ? 'Administrador' : 'Dr. Henry Castañeda'}</strong>
+                      </span>
+                    </div>
+                    <span className="text-xs">
+                      {currentUser === 'doctor' ? '🛡️' : '🩺'}
+                    </span>
+                  </button>
+
+                  {/* Bloquear Pantalla con PIN */}
+                  <button
+                    onClick={() => {
+                      setIsUserMenuOpen(false);
+                      lockScreen();
+                    }}
+                    className="w-full px-3 py-2 text-left rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-700 flex items-center gap-2 transition-colors cursor-pointer"
+                  >
+                    <Lock className="w-4 h-4 text-slate-600" />
+                    <span>Bloquear Pantalla con PIN</span>
+                  </button>
+
+                  {/* Renovar PIN por Correo */}
+                  <button
+                    onClick={() => {
+                      setIsUserMenuOpen(false);
+                      openPinModal();
+                    }}
+                    className="w-full px-3 py-2 text-left rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-700 flex items-center gap-2 transition-colors cursor-pointer"
+                  >
+                    <KeyRound className="w-4 h-4 text-[#004299]" />
+                    <span>Renovar PIN / Gestionar Claves</span>
+                  </button>
+
+                  {/* Cerrar Sesión */}
+                  <div className="pt-1 border-t border-slate-100">
+                    <button
+                      onClick={() => {
+                        setIsUserMenuOpen(false);
+                        logout();
+                      }}
+                      className="w-full px-3 py-2 text-left rounded-xl hover:bg-red-50 text-xs font-bold text-red-600 flex items-center gap-2 transition-colors cursor-pointer"
+                    >
+                      <LogOut className="w-4 h-4 text-red-500" />
+                      <span>Cerrar Sesión</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Botón Bloquear Pantalla con PIN */}
           <button
             onClick={lockScreen}

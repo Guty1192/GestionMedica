@@ -126,6 +126,8 @@ drop policy if exists "Permitir todo doctor pin" on doctor_seguridad_pin;
 create policy "Permitir todo doctor pin" on doctor_seguridad_pin for all using (true) with check (true);
 
 insert into doctor_seguridad_pin (id, email, pin_hash, expires_at)
-values ('doctor_pin_config', 'gutipublicida@gmail.com', '1234', now() + interval '30 days')
+values
+  ('doctor_pin_config', 'gutipublicida@gmail.com', '1234', now() + interval '30 days'),
+  ('admin_pin_config', 'gutipublicida@gmail.com', '4321', now() + interval '30 days')
 on conflict (id) do nothing;
 

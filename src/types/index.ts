@@ -1,4 +1,5 @@
 export type UserRole = 'admin' | 'specialist';
+export type AuthUserType = 'doctor' | 'admin';
 
 export type EstadoGeneral = 'activo' | 'inactivo' | 'en_espera' | 'en_consulta' | 'finalizado';
 export type EstadoCita = 'programado' | 'en_espera' | 'en_consulta' | 'completado' | 'cancelado' | 'no_asistio';

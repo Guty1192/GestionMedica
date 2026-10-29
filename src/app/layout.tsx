@@ -5,6 +5,7 @@ import { SecurityProvider } from '@/lib/security/securityContext';
 import { DoctorAuthProvider } from '@/lib/auth/doctorAuthContext';
 import { ModalCentroSeguridad } from '@/components/security/ModalCentroSeguridad';
 import { ModalDoctorPin } from '@/components/auth/ModalDoctorPin';
+import { ModalLogin } from '@/components/auth/ModalLogin';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 
@@ -46,6 +47,9 @@ export default function RootLayout({
 
               {/* Modal de PIN de 30 Días con Teclado Numérico */}
               <ModalDoctorPin />
+
+              {/* Portal de Login para Doctor y Administrador */}
+              <ModalLogin />
             </ClinicProvider>
           </SecurityProvider>
         </DoctorAuthProvider>

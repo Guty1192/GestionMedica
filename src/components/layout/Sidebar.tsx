@@ -4,6 +4,7 @@ import React from 'react';
 import { usePathname } from 'next/navigation';
 import NextLink from 'next/link';
 import { useClinicStore } from '@/lib/supabase/clinicContext';
+import { useDoctorAuth } from '@/lib/auth/doctorAuthContext';
 import {
   Image as ImageIcon,
   CalendarDays,
@@ -44,6 +45,12 @@ export const Sidebar: React.FC = () => {
     setUserRole,
     isLiveSupabase,
   } = useClinicStore();
+
+  const {
+    currentUser,
+    switchUser,
+    activeUser,
+  } = useDoctorAuth();
 
   return (
     <aside className="w-72 bg-white border-r-2 border-slate-200 flex flex-col justify-between h-screen sticky top-0 z-30 select-none shadow-xs text-slate-700 transition-colors duration-200">
@@ -141,18 +148,21 @@ export const Sidebar: React.FC = () => {
           <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500 mb-1.5">
             <span className="flex items-center gap-1.5">
               <UserCheck className="w-3.5 h-3.5 text-slate-400" />
-              Rol de Usuario
+              Cuenta Activa
             </span>
             <span className="text-[10px] font-black text-slate-800 uppercase tracking-wider">
-              {userRole === 'admin' ? 'Administrador' : 'Médico Especialista'}
+              {currentUser === 'doctor' ? 'Dr. Henry Castañeda' : 'Administrador'}
             </span>
           </div>
 
           <div className="grid grid-cols-2 gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
             <button
-              onClick={() => setUserRole('specialist')}
+              onClick={() => {
+                switchUser('doctor');
+                setUserRole('specialist');
+              }}
               className={`flex items-center justify-center gap-1.5 py-1.5 text-[11px] font-semibold rounded-lg transition-all cursor-pointer ${
-                userRole === 'specialist'
+                currentUser === 'doctor'
                   ? 'bg-[#004299] text-white shadow-xs font-bold border border-[#004299]'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
@@ -161,9 +171,12 @@ export const Sidebar: React.FC = () => {
               Médico
             </button>
             <button
-              onClick={() => setUserRole('admin')}
+              onClick={() => {
+                switchUser('admin');
+                setUserRole('admin');
+              }}
               className={`flex items-center justify-center gap-1.5 py-1.5 text-[11px] font-semibold rounded-lg transition-all cursor-pointer ${
-                userRole === 'admin'
+                currentUser === 'admin'
                   ? 'bg-[#004299] text-white shadow-xs font-bold border border-[#004299]'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
