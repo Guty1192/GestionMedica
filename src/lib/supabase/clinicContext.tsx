@@ -134,13 +134,14 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     // 2. Si Supabase está conectado, traer datos en vivo desde la nube
     if (isConfigured && supabase) {
+      const client = supabase;
       const fetchSupabaseLive = async () => {
         try {
           const [resPacientes, resHistorial, resEcos, resCitas] = await Promise.allSettled([
-            supabase.from('pacientes_ginecologia').select('*').order('created_at', { ascending: false }),
-            supabase.from('historial_clinico_registros').select('*').order('created_at', { ascending: false }),
-            supabase.from('ecografias_archivos').select('*').order('created_at', { ascending: false }),
-            supabase.from('agenda_citas').select('*').order('created_at', { ascending: false }),
+            client.from('pacientes_ginecologia').select('*').order('created_at', { ascending: false }),
+            client.from('historial_clinico_registros').select('*').order('created_at', { ascending: false }),
+            client.from('ecografias_archivos').select('*').order('created_at', { ascending: false }),
+            client.from('agenda_citas').select('*').order('created_at', { ascending: false }),
           ]);
 
           if (resPacientes.status === 'fulfilled' && resPacientes.value.data && resPacientes.value.data.length > 0) {
