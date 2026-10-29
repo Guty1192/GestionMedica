@@ -2,7 +2,9 @@ import type { Metadata } from 'next';
 import '@/styles/globals.css';
 import { ClinicProvider } from '@/lib/supabase/clinicContext';
 import { SecurityProvider } from '@/lib/security/securityContext';
+import { DoctorAuthProvider } from '@/lib/auth/doctorAuthContext';
 import { ModalCentroSeguridad } from '@/components/security/ModalCentroSeguridad';
+import { ModalDoctorPin } from '@/components/auth/ModalDoctorPin';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 
@@ -23,25 +25,30 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className="bg-[#f4f7fb] text-slate-800 antialiased selection:bg-blue-600 selection:text-white transition-colors duration-200">
-        <SecurityProvider>
-          <ClinicProvider>
-            <div className="flex min-h-screen bg-[#f4f7fb]">
-              {/* Left Nav */}
-              <Sidebar />
+        <DoctorAuthProvider>
+          <SecurityProvider>
+            <ClinicProvider>
+              <div className="flex min-h-screen bg-[#f4f7fb]">
+                {/* Left Nav */}
+                <Sidebar />
 
-              {/* Main Area */}
-              <div className="flex-1 flex flex-col min-w-0">
-                <Header />
-                <main className="flex-1 p-3.5 sm:p-4.5 overflow-y-auto bg-[#f4f7fb] text-slate-800 transition-colors">
-                  {children}
-                </main>
+                {/* Main Area */}
+                <div className="flex-1 flex flex-col min-w-0">
+                  <Header />
+                  <main className="flex-1 p-3.5 sm:p-4.5 overflow-y-auto bg-[#f4f7fb] text-slate-800 transition-colors">
+                    {children}
+                  </main>
+                </div>
               </div>
-            </div>
 
-            {/* Modal de Centro de Ciberseguridad y Agentes */}
-            <ModalCentroSeguridad />
-          </ClinicProvider>
-        </SecurityProvider>
+              {/* Centro de Ciberseguridad & Agentes */}
+              <ModalCentroSeguridad />
+
+              {/* Modal de PIN de 30 Días con Teclado Numérico */}
+              <ModalDoctorPin />
+            </ClinicProvider>
+          </SecurityProvider>
+        </DoctorAuthProvider>
       </body>
     </html>
   );

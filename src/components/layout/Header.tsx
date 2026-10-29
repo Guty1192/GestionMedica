@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useClinicStore } from '@/lib/supabase/clinicContext';
 import { useSecurity } from '@/lib/security/securityContext';
+import { useDoctorAuth } from '@/lib/auth/doctorAuthContext';
 import {
   Search,
   PlusCircle,
@@ -16,6 +17,7 @@ import {
   ChevronRight,
   Sparkles,
   ShieldCheck,
+  Lock,
 } from 'lucide-react';
 import { ModalNuevoRegistroHistorial } from '../modals/ModalNuevoRegistroHistorial';
 import { ModalBuscadorPacientes } from '../modals/ModalBuscadorPacientes';
@@ -31,6 +33,7 @@ export const Header: React.FC = () => {
   } = useClinicStore();
 
   const { openSecurityModal, privacyMode } = useSecurity();
+  const { lockScreen, daysRemainingPin, isPinExpired } = useDoctorAuth();
 
   const [openHistorialModal, setOpenHistorialModal] = useState(false);
   const [openSearchModal, setOpenSearchModal] = useState(false);
@@ -291,8 +294,19 @@ export const Header: React.FC = () => {
           )}
         </div>
 
-        {/* Right Action Bar: Ciberseguridad & Registrar Paciente */}
+        {/* Right Action Bar: Ciberseguridad, Bloqueo PIN & Registrar Paciente */}
         <div className="flex items-center gap-2">
+          {/* Botón Bloquear Pantalla con PIN */}
+          <button
+            onClick={lockScreen}
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200/80 rounded-xl transition-all border border-slate-200 cursor-pointer shadow-2xs group"
+            title={`Bloquear pantalla con PIN (${daysRemainingPin} días restantes de vigencia)`}
+          >
+            <Lock className="w-3.5 h-3.5 text-slate-600 group-hover:text-slate-900 transition-transform group-hover:scale-110" />
+            <span className="hidden lg:inline font-bold">Bloquear</span>
+            <span className="text-[10px] text-slate-500 hidden xl:inline font-mono">({daysRemainingPin}d)</span>
+          </button>
+
           {/* Botón Centro de Ciberseguridad */}
           <button
             onClick={openSecurityModal}

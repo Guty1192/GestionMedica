@@ -107,3 +107,25 @@ values
   ('pac-4', 'Carlos Alberto Torres Vega', '10928374', 54, '+51 993 410 998', 'carlos.torresv@hotmail.com', 'O+', 'Sulfas', 'Hipertensión arterial estadio 1 y dislipidemia mixta.', 'Consulta General', 'activo'),
   ('pac-5', 'Rosa Elena Benítez Paredes', '09812345', 38, '+51 964 120 443', 'rosa.benitez@gmail.com', 'A-', 'Aspirina', 'Cervicitis crónica tratada, control de Papanicolaou anual.', 'Ginecología', 'activo')
 on conflict (documento) do nothing;
+
+-- ====================================================================
+-- 6. TABLA: SEGURIDAD DEL DOCTOR - PIN ROTATIVO DE 30 DÍAS
+-- ====================================================================
+
+create table if not exists doctor_seguridad_pin (
+  id text primary key default 'doctor_pin_config',
+  email text not null,
+  pin_hash text not null default '1234',
+  created_at timestamptz default now(),
+  expires_at timestamptz default (now() + interval '30 days'),
+  updated_at timestamptz default now()
+);
+
+alter table doctor_seguridad_pin enable row level security;
+drop policy if exists "Permitir todo doctor pin" on doctor_seguridad_pin;
+create policy "Permitir todo doctor pin" on doctor_seguridad_pin for all using (true) with check (true);
+
+insert into doctor_seguridad_pin (id, email, pin_hash, expires_at)
+values ('doctor_pin_config', 'gutipublicida@gmail.com', '1234', now() + interval '30 days')
+on conflict (id) do nothing;
+
