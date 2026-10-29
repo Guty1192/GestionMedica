@@ -3,6 +3,8 @@
 import React, { useState, useMemo, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useClinicStore } from '@/lib/supabase/clinicContext';
+import { useSecurity } from '@/lib/security/securityContext';
+import { maskDni, maskPhone, maskEmail } from '@/lib/security/securityEngine';
 import { EspecialidadMedica, RegistroHistorial } from '@/types';
 import { generateUltrasoundPdf } from '@/lib/pdf/generateUltrasoundPdf';
 import {
@@ -41,6 +43,7 @@ function HistorialClinicoContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { historial, pacientes, deleteRegistroHistorial, setActivePatientId } = useClinicStore();
+  const { privacyMode, logSecurityEvent } = useSecurity();
 
   const urlDni = searchParams.get('dni') || '';
   const urlQ = searchParams.get('q') || '';
@@ -444,7 +447,7 @@ function HistorialClinicoContent() {
                 </span>
                 <h2 className="text-base font-black text-slate-900">{matchedPatient.nombre}</h2>
                 <span className="font-mono text-xs font-black bg-white text-[#004299] border-2 border-[#004299] px-2.5 py-0.5 rounded-lg shadow-2xs">
-                  DNI: {matchedPatient.dni}
+                  DNI: {privacyMode ? maskDni(matchedPatient.dni) : matchedPatient.dni}
                 </span>
                 {matchedPatient.edad > 0 && (
                   <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">
@@ -632,7 +635,7 @@ function HistorialClinicoContent() {
                           </div>
                           <div>
                             <span className="font-mono text-[11px] font-black text-[#004299] bg-[#e6f0fc] px-2 py-0.5 rounded-md border border-[#cde2fb]">
-                              DNI: {pacienteGroup.dni}
+                              DNI: {privacyMode ? maskDni(pacienteGroup.dni) : pacienteGroup.dni}
                             </span>
                           </div>
                         </div>
@@ -672,7 +675,7 @@ function HistorialClinicoContent() {
                         {pacienteGroup.celular ? (
                           <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-800">
                             <Phone className="w-3.5 h-3.5 text-[#004299] flex-shrink-0" />
-                            <span>{pacienteGroup.celular}</span>
+                            <span>{privacyMode ? maskPhone(pacienteGroup.celular) : pacienteGroup.celular}</span>
                           </div>
                         ) : (
                           <span className="text-slate-400 text-[10px]">Sin celular</span>
@@ -684,7 +687,7 @@ function HistorialClinicoContent() {
                             title={pacienteGroup.correo}
                           >
                             <Mail className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                            <span className="truncate">{pacienteGroup.correo}</span>
+                            <span className="truncate">{privacyMode ? maskEmail(pacienteGroup.correo) : pacienteGroup.correo}</span>
                           </div>
                         ) : (
                           <span className="text-slate-400 text-[10px]">Sin correo</span>

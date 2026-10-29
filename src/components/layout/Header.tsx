@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useClinicStore } from '@/lib/supabase/clinicContext';
+import { useSecurity } from '@/lib/security/securityContext';
 import {
   Search,
   PlusCircle,
@@ -14,6 +15,7 @@ import {
   ExternalLink,
   ChevronRight,
   Sparkles,
+  ShieldCheck,
 } from 'lucide-react';
 import { ModalNuevoRegistroHistorial } from '../modals/ModalNuevoRegistroHistorial';
 import { ModalBuscadorPacientes } from '../modals/ModalBuscadorPacientes';
@@ -27,6 +29,8 @@ export const Header: React.FC = () => {
     notification,
     dismissNotification,
   } = useClinicStore();
+
+  const { openSecurityModal, privacyMode } = useSecurity();
 
   const [openHistorialModal, setOpenHistorialModal] = useState(false);
   const [openSearchModal, setOpenSearchModal] = useState(false);
@@ -287,8 +291,18 @@ export const Header: React.FC = () => {
           )}
         </div>
 
-        {/* Right Action Bar: Registrar Paciente */}
-        <div className="flex items-center gap-2.5">
+        {/* Right Action Bar: Ciberseguridad & Registrar Paciente */}
+        <div className="flex items-center gap-2">
+          {/* Botón Centro de Ciberseguridad */}
+          <button
+            onClick={openSecurityModal}
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-sky-950 bg-sky-50 hover:bg-sky-100/90 rounded-xl transition-all border border-sky-200 cursor-pointer shadow-2xs group"
+            title="Abrir Centro de Ciberseguridad & Agentes del Sistema"
+          >
+            <ShieldCheck className="w-4 h-4 text-[#004299] group-hover:scale-110 transition-transform" />
+            <span className="hidden sm:inline font-bold text-slate-800">Seguridad</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="Protección activa 24/7"></span>
+          </button>
 
           {/* Quick Action Button: Registrar paciente */}
           <button
