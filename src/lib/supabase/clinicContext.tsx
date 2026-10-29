@@ -98,8 +98,10 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // Initialize from LocalStorage or Supabase
   useEffect(() => {
-    setIsLiveSupabase(isSupabaseConfigured());
+    const isConfigured = isSupabaseConfigured();
+    setIsLiveSupabase(isConfigured);
 
+    // 1. Cargar cache local para visualización instantánea sin demora
     if (typeof window !== 'undefined') {
       try {
         const savedPacientes = localStorage.getItem(STORAGE_KEYS.PACIENTES);
@@ -126,8 +128,43 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const savedActivePatient = localStorage.getItem(STORAGE_KEYS.ACTIVE_PATIENT);
         if (savedActivePatient) setActivePatientIdState(savedActivePatient);
       } catch (err) {
-        console.error('Error loading stored clinic state', err);
+        console.error('Error cargando estado local:', err);
       }
+    }
+
+    // 2. Si Supabase está conectado, traer datos en vivo desde la nube
+    if (isConfigured && supabase) {
+      const fetchSupabaseLive = async () => {
+        try {
+          const [resPacientes, resHistorial, resEcos, resCitas] = await Promise.allSettled([
+            supabase.from('pacientes_ginecologia').select('*').order('created_at', { ascending: false }),
+            supabase.from('historial_clinico_registros').select('*').order('created_at', { ascending: false }),
+            supabase.from('ecografias_archivos').select('*').order('created_at', { ascending: false }),
+            supabase.from('agenda_citas').select('*').order('created_at', { ascending: false }),
+          ]);
+
+          if (resPacientes.status === 'fulfilled' && resPacientes.value.data && resPacientes.value.data.length > 0) {
+            setPacientes(resPacientes.value.data as Paciente[]);
+            saveStateToStorage(STORAGE_KEYS.PACIENTES, resPacientes.value.data);
+          }
+          if (resHistorial.status === 'fulfilled' && resHistorial.value.data && resHistorial.value.data.length > 0) {
+            setHistorial(resHistorial.value.data as RegistroHistorial[]);
+            saveStateToStorage(STORAGE_KEYS.HISTORIAL, resHistorial.value.data);
+          }
+          if (resEcos.status === 'fulfilled' && resEcos.value.data && resEcos.value.data.length > 0) {
+            setEcografias(resEcos.value.data as Ecografia[]);
+            saveStateToStorage(STORAGE_KEYS.ECOGRAFIAS, resEcos.value.data);
+          }
+          if (resCitas.status === 'fulfilled' && resCitas.value.data && resCitas.value.data.length > 0) {
+            setCitas(resCitas.value.data as CitaAgenda[]);
+            saveStateToStorage(STORAGE_KEYS.CITAS, resCitas.value.data);
+          }
+        } catch (err) {
+          console.warn('Conexión Supabase (modo fallback local activo):', err);
+        }
+      };
+
+      fetchSupabaseLive();
     }
   }, []);
 
@@ -408,6 +445,14 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       });
     }
 
+    if (supabase) {
+      try {
+        await supabase.from('historial_clinico_registros').insert([newReg]);
+      } catch (err) {
+        console.warn('Supabase remote historial insert fallback:', err);
+      }
+    }
+
     showToast(`Consulta de ${newReg.especialidad} registrada para ${newReg.nombres_completos}`, 'success');
     return newReg;
   };
@@ -416,6 +461,15 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const updated = historial.map((h) => (h.id === id ? { ...h, ...updates } : h));
     setHistorial(updated);
     saveStateToStorage(STORAGE_KEYS.HISTORIAL, updated);
+
+    if (supabase) {
+      try {
+        await supabase.from('historial_clinico_registros').update(updates).eq('id', id);
+      } catch (err) {
+        console.warn('Supabase remote historial update fallback:', err);
+      }
+    }
+
     showToast('Registro de historial actualizado', 'success');
   };
 
@@ -423,6 +477,15 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const updated = historial.filter((h) => h.id !== id);
     setHistorial(updated);
     saveStateToStorage(STORAGE_KEYS.HISTORIAL, updated);
+
+    if (supabase) {
+      try {
+        await supabase.from('historial_clinico_registros').delete().eq('id', id);
+      } catch (err) {
+        console.warn('Supabase remote historial delete fallback:', err);
+      }
+    }
+
     showToast('Registro de historial eliminado', 'info');
   };
 
