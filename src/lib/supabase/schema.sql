@@ -101,12 +101,23 @@ create policy "Permitir todo agenda" on agenda_citas for all using (true) with c
 
 insert into pacientes_ginecologia (id, nombre, documento, edad, telefono, email, grupo_rh, alergias, antecedentes_medicos, especialidad_principal, estado)
 values
+  ('pac-1793236077657', 'Anthony Gutierrez', '72431309', 34, '+51934567073', 'gutipublicidad@gmail.com', 'O+', 'Ninguna conocida', 'Evaluación clínica y chequeo general', 'Consulta General', 'activo'),
   ('pac-1', 'María Fernanda Castillo Morales', '43219876', 42, '+51 984 551 234', 'mfernanda.castillo@gmail.com', 'A+', 'Ninguna conocida', 'Artrosis de rodilla derecha y úlcera maleolar en recuperación.', 'Ozonoterapia', 'activo'),
   ('pac-2', 'Carmen Rosa Quispe Valdivia', '70891234', 31, '+51 951 882 109', 'carmen.quispe@outlook.com', 'O-', 'Penicilina', 'Dismenorrea y seguimiento ecográfico transvaginal.', 'Ecografía', 'activo'),
   ('pac-3', 'Gabriela Lucía Mendoza Rivas', '46781209', 28, '+51 972 334 112', 'gabriela.mendoza@gmail.com', 'B+', 'Ninguna', 'Control ginecológico periódico y colposcopia anual.', 'Ginecología', 'activo'),
   ('pac-4', 'Carlos Alberto Torres Vega', '10928374', 54, '+51 993 410 998', 'carlos.torresv@hotmail.com', 'O+', 'Sulfas', 'Hipertensión arterial estadio 1 y dislipidemia mixta.', 'Consulta General', 'activo'),
   ('pac-5', 'Rosa Elena Benítez Paredes', '09812345', 38, '+51 964 120 443', 'rosa.benitez@gmail.com', 'A-', 'Aspirina', 'Cervicitis crónica tratada, control de Papanicolaou anual.', 'Ginecología', 'activo')
 on conflict (documento) do nothing;
+
+insert into historial_clinico_registros (id, dni, nombres_completos, celular, correo, edad, especialidad, tratamiento, foto_antes, foto_despues, fecha_registro, notas_adicionales)
+values
+  ('hist-1793236077656', '72431309', 'Anthony Gutierrez', '+51934567073', 'gutipublicidad@gmail.com', 34, 'Consulta General', 'Evaluación clínica general, signos vitales, anamnesis por aparatos y sistemas. Prescripción médica y solicitud de exámenes de laboratorio.', null, null, '2026-10-29', 'Paciente en buen estado general. Próximo control preventivo en 6 meses.'),
+  ('hist-001', '43219876', 'María Fernanda Castillo Morales', '+51 984 551 234', 'mfernanda.castillo@gmail.com', 42, 'Ozonoterapia', 'Protocolo de Autohemoterapia Mayor (AHTM) 150ml con ozono a 30 µg/ml + Infiltración periarticular en rodilla derecha con O3 a 15 µg/ml (sesión 4/6). Aplicación tópica de aceite ozonizado al 10% en úlcera maleolar.', '/brand/consulta_1.jpg', '/brand/dr_henry.jpg', '2026-10-27', 'Paciente reporta disminución del dolor de EVA 8/10 a 2/10. Granulación tisular activa al 90%.'),
+  ('hist-002', '70891234', 'Carmen Rosa Quispe Valdivia', '+51 951 882 109', 'carmen.quispe@outlook.com', 31, 'Ecografía', 'Ecografía Ginecológica Transvaginal de Alta Resolución con Doppler Color. Plan: Manejo médico para dismenorrea primaria y control ecográfico en 6 meses.', '/brand/ecografia_1.jpg', '/brand/consulta_2.jpg', '2026-10-27', 'Informe listo para impresión y descarga en PDF oficial.'),
+  ('hist-003', '46781209', 'Gabriela Lucía Mendoza Rivas', '+51 972 334 112', 'gabriela.mendoza@gmail.com', 28, 'Ginecología', 'Chequeo ginecológico integral + Colposcopia diagnóstica. Tratamiento de cervicitis mixta con óvulos vaginales de Metronidazol 500mg + Nistatina 100,000 UI por 10 días continuos. Consejería en método anticonceptivo de larga duración.', '/brand/ginecologia_2.jpg', '/brand/ginecologia_3.jpg', '2026-10-26', 'Toma de Papanicolau realizada y enviada a patología. Cita de revisión en 2 semanas.'),
+  ('hist-004', '10928374', 'Carlos Alberto Torres Vega', '+51 993 410 998', 'carlos.torresv@hotmail.com', 54, 'Consulta General', 'Manejo ambulatorio de Hipertensión Arterial Primaria Estadio 1 + Dislipidemia mixta. Prescripción médica: Losartán Potásico 50mg (1 tableta VO cada 12 horas) + Atorvastatina 20mg (1 tableta VO nocturna). Dieta hiposódica y actividad aeróbica regular.', null, null, '2026-10-25', 'Control de perfil lipídico, glucosa en ayunas y creatinina sérica en 4 semanas.'),
+  ('hist-005', '09812345', 'Rosa Elena Benítez Paredes', '+51 964 120 443', 'rosa.benitez@gmail.com', 38, 'Ginecología', 'Control ginecológico y evaluación citológica anual. Colposcopia con visualización de zona de transformación tipo 1 normal. Recomendación de estilos de vida saludables y control en 1 año.', null, null, '2026-10-28', 'Resultado de Papanicolaou previo negativo (NILM).')
+on conflict (id) do nothing;
 
 -- ====================================================================
 -- 6. TABLA: SEGURIDAD DEL DOCTOR - PIN ROTATIVO DE 30 DÍAS

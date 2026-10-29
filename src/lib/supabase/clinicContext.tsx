@@ -86,7 +86,7 @@ const STORAGE_KEYS = {
 
 export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [userRole, setUserRoleState] = useState<UserRole>('specialist');
-  const [activePatientId, setActivePatientIdState] = useState<string>('a1b2c3d4-0001-4000-8000-000000000001');
+  const [activePatientId, setActivePatientIdState] = useState<string>('pac-1793236077657');
   const [pacientes, setPacientes] = useState<Paciente[]>(INITIAL_PACIENTES);
   const [historial, setHistorial] = useState<RegistroHistorial[]>(INITIAL_HISTORIAL);
   const [ecografias, setEcografias] = useState<Ecografia[]>(INITIAL_ECOGRAFIAS);
@@ -105,10 +105,32 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (typeof window !== 'undefined') {
       try {
         const savedPacientes = localStorage.getItem(STORAGE_KEYS.PACIENTES);
-        if (savedPacientes) setPacientes(JSON.parse(savedPacientes));
+        if (savedPacientes) {
+          const parsed = JSON.parse(savedPacientes);
+          const hasAnthony = Array.isArray(parsed) && parsed.some((p: Paciente) => p.documento === '72431309');
+          if (hasAnthony) {
+            setPacientes(parsed);
+          } else {
+            setPacientes(INITIAL_PACIENTES);
+            saveStateToStorage(STORAGE_KEYS.PACIENTES, INITIAL_PACIENTES);
+          }
+        } else {
+          setPacientes(INITIAL_PACIENTES);
+        }
 
         const savedHistorial = localStorage.getItem(STORAGE_KEYS.HISTORIAL);
-        if (savedHistorial) setHistorial(JSON.parse(savedHistorial));
+        if (savedHistorial) {
+          const parsedH = JSON.parse(savedHistorial);
+          const hasAnthonyH = Array.isArray(parsedH) && parsedH.some((h: RegistroHistorial) => h.dni === '72431309');
+          if (hasAnthonyH) {
+            setHistorial(parsedH);
+          } else {
+            setHistorial(INITIAL_HISTORIAL);
+            saveStateToStorage(STORAGE_KEYS.HISTORIAL, INITIAL_HISTORIAL);
+          }
+        } else {
+          setHistorial(INITIAL_HISTORIAL);
+        }
 
         const savedEcos = localStorage.getItem(STORAGE_KEYS.ECOGRAFIAS);
         if (savedEcos) setEcografias(JSON.parse(savedEcos));
@@ -126,7 +148,11 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         if (savedRole === 'admin' || savedRole === 'specialist') setUserRoleState(savedRole);
 
         const savedActivePatient = localStorage.getItem(STORAGE_KEYS.ACTIVE_PATIENT);
-        if (savedActivePatient) setActivePatientIdState(savedActivePatient);
+        if (savedActivePatient && savedActivePatient !== 'a1b2c3d4-0001-4000-8000-000000000001') {
+          setActivePatientIdState(savedActivePatient);
+        } else {
+          setActivePatientIdState('pac-1793236077657');
+        }
       } catch (err) {
         console.error('Error cargando estado local:', err);
       }
