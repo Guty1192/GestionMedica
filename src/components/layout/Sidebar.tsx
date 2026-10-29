@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import NextLink from 'next/link';
 import { useClinicStore } from '@/lib/supabase/clinicContext';
@@ -16,6 +16,8 @@ import {
   KeyRound,
   LogOut,
   Calendar,
+  ChevronUp,
+  X,
 } from 'lucide-react';
 
 const navItems = [
@@ -45,7 +47,6 @@ const navItems = [
 export const Sidebar: React.FC = () => {
   const pathname = usePathname();
   const {
-    userRole,
     setUserRole,
     isLiveSupabase,
   } = useClinicStore();
@@ -59,6 +60,20 @@ export const Sidebar: React.FC = () => {
     openPinModal,
     daysRemainingPin,
   } = useDoctorAuth();
+
+  const [isProfilePopupOpen, setIsProfilePopupOpen] = useState<boolean>(false);
+  const popupRef = useRef<HTMLDivElement>(null);
+
+  // Cerrar el popup al hacer clic fuera del componente
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (popupRef.current && !popupRef.current.contains(e.target as Node)) {
+        setIsProfilePopupOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <aside className="w-72 bg-white border-r-2 border-slate-200 flex flex-col justify-between h-screen sticky top-0 z-30 select-none shadow-xs text-slate-700 transition-colors duration-200">
@@ -150,131 +165,186 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Bottom Controls: Cuenta Activa, Seguridad & Sincronización */}
-      <div className="p-3 border-t-2 border-slate-100 bg-slate-50/70 space-y-2.5">
-        {/* Toggle Médico vs Administrador */}
-        <div>
-          <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500 mb-1.5 px-0.5">
+      <div ref={popupRef} className="p-3 border-t-2 border-slate-100 bg-slate-50/70 relative">
+        {/* POPUP FLOTANTE DE INFORMACIÓN Y OPCIONES DE CUENTA */}
+        {isProfilePopupOpen && (
+          <div
+            className={`absolute bottom-full left-3 right-3 mb-2 rounded-3xl border-2 shadow-2xl p-4 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150 text-slate-800 ${
+              currentUser === 'doctor'
+                ? 'bg-white border-sky-300 shadow-sky-950/20'
+                : 'bg-white border-purple-300 shadow-purple-950/20'
+            }`}
+          >
+            {/* Cabecera del Popup con botón cerrar */}
+            <div className="flex items-start justify-between pb-2.5 border-b border-slate-100 mb-3">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div
+                  className={`w-10 h-10 rounded-2xl flex items-center justify-center text-xl flex-shrink-0 shadow-xs border ${
+                    currentUser === 'doctor'
+                      ? 'bg-sky-50 border-sky-200'
+                      : 'bg-purple-50 border-purple-200'
+                  }`}
+                >
+                  {activeUser.avatarIcon}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-black text-slate-900 truncate">
+                    {activeUser.name}
+                  </p>
+                  <p className="text-[10px] text-slate-500 font-medium truncate">
+                    {activeUser.email}
+                  </p>
+                  <span
+                    className={`inline-block mt-0.5 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                      currentUser === 'doctor'
+                        ? 'bg-sky-100 text-sky-800 border border-sky-200'
+                        : 'bg-purple-100 text-purple-800 border border-purple-200'
+                    }`}
+                  >
+                    {currentUser === 'doctor' ? 'MÉDICO ESPECIALISTA' : 'ADMINISTRADOR'}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsProfilePopupOpen(false)}
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+                title="Cerrar ventana"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* Contador de caducidad del PIN de 30 días */}
+            <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-[11px] text-slate-700 mb-3">
+              <span className="flex items-center gap-1.5 font-medium">
+                <Calendar className="w-3.5 h-3.5 text-emerald-600" />
+                PIN rotativo (30 días):
+              </span>
+              <strong className="text-emerald-700 font-bold">{daysRemainingPin}d restantes</strong>
+            </div>
+
+            {/* Acciones de Seguridad */}
+            <div className="space-y-1.5 text-xs font-bold">
+              <button
+                onClick={() => {
+                  setIsProfilePopupOpen(false);
+                  lockScreen();
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 transition-colors cursor-pointer text-left"
+              >
+                <Lock className="w-3.5 h-3.5 text-slate-600" />
+                <span>Bloquear Pantalla con PIN</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setIsProfilePopupOpen(false);
+                  openPinModal();
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-[#004299] border border-blue-200 transition-colors cursor-pointer text-left"
+              >
+                <KeyRound className="w-3.5 h-3.5 text-[#004299]" />
+                <span>Renovar PIN / Gestionar Claves</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setIsProfilePopupOpen(false);
+                  logout();
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-red-50 hover:bg-red-100/80 text-red-600 border border-red-200 transition-colors cursor-pointer text-left"
+              >
+                <LogOut className="w-3.5 h-3.5 text-red-500" />
+                <span>Cerrar Sesión</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Barra Compacta: Cuenta del Sistema */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500 px-0.5">
             <span className="flex items-center gap-1.5">
               <UserCheck className="w-3.5 h-3.5 text-slate-400" />
               Cuenta del Sistema
             </span>
             <span className="text-[10px] font-black text-slate-700 uppercase tracking-wider">
-              {currentUser === 'doctor' ? 'Médico' : 'Admin'}
+              {currentUser === 'doctor' ? 'MÉDICO' : 'ADMIN'}
             </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-1 bg-slate-200/70 p-1 rounded-xl border border-slate-200">
+          <div className="grid grid-cols-2 gap-1.5 bg-slate-200/70 p-1 rounded-2xl border border-slate-200">
+            {/* Botón Médico */}
             <button
               onClick={() => {
-                requestSwitchUser('doctor');
-                setUserRole('specialist');
+                if (currentUser === 'doctor') {
+                  setIsProfilePopupOpen(!isProfilePopupOpen);
+                } else {
+                  requestSwitchUser('doctor');
+                  setUserRole('specialist');
+                  setIsProfilePopupOpen(true);
+                }
               }}
-              className={`flex items-center justify-center gap-1.5 py-1.5 text-[11px] font-semibold rounded-lg transition-all cursor-pointer ${
+              className={`flex items-center justify-center gap-1.5 py-2 px-2 text-[11px] font-bold rounded-xl transition-all cursor-pointer ${
                 currentUser === 'doctor'
-                  ? 'bg-[#004299] text-white shadow-xs font-bold border border-[#004299]'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                  ? 'bg-[#004299] text-white shadow-md shadow-[#004299]/25 border border-[#004299]'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
               }`}
+              title="Cuenta de Médico (Dr. Henry) - Clic para ver opciones"
             >
-              <Stethoscope className="w-3 h-3" />
+              <Stethoscope className="w-3.5 h-3.5" />
               <span>Médico</span>
+              {currentUser === 'doctor' && (
+                <ChevronUp
+                  className={`w-3 h-3 text-blue-200 transition-transform ${
+                    isProfilePopupOpen ? 'rotate-180' : ''
+                  }`}
+                />
+              )}
             </button>
+
+            {/* Botón Administrador */}
             <button
               onClick={() => {
-                requestSwitchUser('admin');
+                if (currentUser === 'admin') {
+                  setIsProfilePopupOpen(!isProfilePopupOpen);
+                } else {
+                  setIsProfilePopupOpen(false);
+                  requestSwitchUser('admin');
+                }
               }}
-              className={`flex items-center justify-center gap-1.5 py-1.5 text-[11px] font-semibold rounded-lg transition-all cursor-pointer ${
+              className={`flex items-center justify-center gap-1.5 py-2 px-2 text-[11px] font-bold rounded-xl transition-all cursor-pointer ${
                 currentUser === 'admin'
-                  ? 'bg-[#004299] text-white shadow-xs font-bold border border-[#004299]'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                  ? 'bg-[#004299] text-white shadow-md shadow-[#004299]/25 border border-[#004299]'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
               }`}
+              title="Cuenta de Administrador - Clic para acceder con PIN"
             >
-              <Shield className="w-3 h-3" />
+              <Shield className="w-3.5 h-3.5" />
               <span>Administrador</span>
+              {currentUser === 'admin' && (
+                <ChevronUp
+                  className={`w-3 h-3 text-blue-200 transition-transform ${
+                    isProfilePopupOpen ? 'rotate-180' : ''
+                  }`}
+                />
+              )}
             </button>
           </div>
-        </div>
 
-        {/* Ficha Completa del Usuario Activo */}
-        <div
-          className={`p-3 rounded-2xl border transition-all ${
-            currentUser === 'doctor'
-              ? 'bg-gradient-to-br from-white via-sky-50/40 to-blue-50/60 border-sky-200 shadow-2xs'
-              : 'bg-gradient-to-br from-white via-purple-50/40 to-indigo-50/60 border-purple-200 shadow-2xs'
-          }`}
-        >
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-white shadow-xs border border-slate-200 flex items-center justify-center text-lg flex-shrink-0">
-              {activeUser.avatarIcon}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-extrabold text-slate-900 truncate">
-                {activeUser.name}
-              </p>
-              <p className="text-[10px] text-slate-500 font-medium truncate">
-                {activeUser.email}
-              </p>
-              <span
-                className={`inline-block mt-0.5 text-[9px] font-black uppercase tracking-wider px-2 py-0.2 rounded-md ${
-                  currentUser === 'doctor'
-                    ? 'bg-sky-100 text-sky-800'
-                    : 'bg-purple-100 text-purple-800'
-                }`}
-              >
-                {currentUser === 'doctor' ? 'MÉDICO ESPECIALISTA' : 'ADMINISTRADOR'}
+          {/* Sync Status Badge */}
+          <div className="p-2 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center gap-2 text-[10px] text-slate-600">
+            <span
+              className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                isLiveSupabase ? 'bg-sky-500 animate-ping' : 'bg-emerald-500'
+              }`}
+            ></span>
+            <div className="min-w-0 flex-1 flex items-center justify-between">
+              <span className="font-bold text-slate-800 truncate">
+                {isLiveSupabase ? 'Supabase Conectado' : 'Sincronizado'}
               </span>
+              <span className="text-[9px] text-slate-400 font-mono">24/7</span>
             </div>
-          </div>
-
-          {/* Estado de PIN rotativo de 30 días */}
-          <div className="mt-2 pt-2 border-t border-slate-200/60 flex items-center justify-between text-[10px] text-slate-600">
-            <span className="flex items-center gap-1 font-medium">
-              <Calendar className="w-3 h-3 text-emerald-600" />
-              PIN rotativo:
-            </span>
-            <strong className="text-emerald-700 font-bold">{daysRemainingPin}d restantes</strong>
-          </div>
-
-          {/* Acciones Rápidas: Bloquear PIN, Renovar, Salir */}
-          <div className="mt-2 pt-2 border-t border-slate-200/60 grid grid-cols-3 gap-1 text-[10px]">
-            <button
-              onClick={lockScreen}
-              className="flex items-center justify-center gap-1 py-1 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold transition-all cursor-pointer"
-              title="Bloquear pantalla con PIN"
-            >
-              <Lock className="w-3 h-3 text-slate-600" />
-              <span>Bloquear</span>
-            </button>
-            <button
-              onClick={openPinModal}
-              className="flex items-center justify-center gap-1 py-1 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold transition-all cursor-pointer"
-              title="Renovar PIN por correo"
-            >
-              <KeyRound className="w-3 h-3 text-[#004299]" />
-              <span>PIN</span>
-            </button>
-            <button
-              onClick={logout}
-              className="flex items-center justify-center gap-1 py-1 rounded-lg bg-white hover:bg-red-50 border border-slate-200 text-red-600 font-bold transition-all cursor-pointer"
-              title="Cerrar sesión"
-            >
-              <LogOut className="w-3 h-3 text-red-500" />
-              <span>Salir</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Sync Status Badge */}
-        <div className="p-2 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center gap-2 text-[10px] text-slate-600">
-          <span
-            className={`w-2 h-2 rounded-full flex-shrink-0 ${
-              isLiveSupabase ? 'bg-sky-500 animate-ping' : 'bg-emerald-500'
-            }`}
-          ></span>
-          <div className="min-w-0 flex-1 flex items-center justify-between">
-            <span className="font-bold text-slate-800 truncate">
-              {isLiveSupabase ? 'Supabase Conectado' : 'Sincronizado'}
-            </span>
-            <span className="text-[9px] text-slate-400 font-mono">24/7</span>
           </div>
         </div>
       </div>
