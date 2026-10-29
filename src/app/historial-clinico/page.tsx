@@ -545,11 +545,11 @@ function HistorialClinicoContent() {
                 ? `Tabla de ${matchedPatient.nombre} (${matchedPatient.totalRecords} tratamientos en su historial)`
                 : `Tabla de Pacientes y Tratamientos (${groupedPatients.length} pacientes • ${totalTratamientosCount} tratamientos)`}
             </h3>
-            <span className="text-xs text-slate-500 font-medium">
-              {matchedPatient
-                ? '• Filtrado exclusivo por DNI ' + matchedPatient.dni
-                : '• Todos los tratamientos se integran en la misma tabla del paciente'}
-            </span>
+            {matchedPatient && (
+              <span className="text-xs text-slate-500 font-medium">
+                • Filtrado exclusivo por DNI {matchedPatient.dni}
+              </span>
+            )}
           </div>
 
           <span className="text-[11px] text-slate-500 font-medium">
