@@ -30,10 +30,11 @@ export const Header: React.FC = () => {
     activePatientId,
     notification,
     dismissNotification,
+    userRole,
   } = useClinicStore();
 
   const { openSecurityModal, privacyMode } = useSecurity();
-  const { lockScreen, daysRemainingPin, isPinExpired } = useDoctorAuth();
+  const { currentUser, lockScreen, daysRemainingPin, isPinExpired } = useDoctorAuth();
 
   const [openHistorialModal, setOpenHistorialModal] = useState(false);
   const [openSearchModal, setOpenSearchModal] = useState(false);
@@ -308,16 +309,18 @@ export const Header: React.FC = () => {
             <span className="text-[10px] text-slate-500 hidden xl:inline font-mono">({daysRemainingPin}d)</span>
           </button>
 
-          {/* Botón Centro de Ciberseguridad */}
-          <button
-            onClick={openSecurityModal}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-sky-950 bg-sky-50 hover:bg-sky-100/90 rounded-xl transition-all border border-sky-200 cursor-pointer shadow-2xs group"
-            title="Abrir Centro de Ciberseguridad & Agentes del Sistema"
-          >
-            <ShieldCheck className="w-4 h-4 text-[#004299] group-hover:scale-110 transition-transform" />
-            <span className="hidden sm:inline font-bold text-slate-800">Seguridad</span>
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="Protección activa 24/7"></span>
-          </button>
+          {/* Botón Centro de Ciberseguridad (Exclusivo para el Administrador) */}
+          {(currentUser === 'admin' || userRole === 'admin') && (
+            <button
+              onClick={openSecurityModal}
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-sky-950 bg-sky-50 hover:bg-sky-100/90 rounded-xl transition-all border border-sky-200 cursor-pointer shadow-2xs group"
+              title="Abrir Centro de Ciberseguridad & Agentes del Sistema (Solo Administrador)"
+            >
+              <ShieldCheck className="w-4 h-4 text-[#004299] group-hover:scale-110 transition-transform" />
+              <span className="hidden sm:inline font-bold text-slate-800">Seguridad</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="Protección activa 24/7"></span>
+            </button>
+          )}
 
           {/* Quick Action Button: Registrar paciente */}
           <button
